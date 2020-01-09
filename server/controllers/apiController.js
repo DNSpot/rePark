@@ -27,13 +27,14 @@ apiController.findAll = async (req, res, next) =>{
     `
     await db.query(text)
     .then(response =>{
-        res.locals.pins = response.rows;
+        res.locals.pins = response.rows[0];
         console.log(response)
     })
     .catch(err => {
         console.log(err)
     })
-}
+    next();
+  }
 
 apiController.findOne = async (req, res, next) =>{
   const { longitude, latitude, id } = req.body;

@@ -20,7 +20,7 @@ app.use('/signup', signup);
 
 app.use('/login', login);
 
-// app.use('/api', api);
+app.use('/api', api);
 
 if (process.env.NODE_ENV === 'production') {
   app.use('/build', express.static(path.join(__dirname, '../build')));
