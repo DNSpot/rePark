@@ -21,7 +21,6 @@ else /* else use Google */
     window.open(`https://maps.google.com/maps?daddr=${lat},${long}&amp;ll=`);
 }
 
-
 const MapComponent = () => {
   function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -131,17 +130,81 @@ const MapComponent = () => {
         body: JSON.stringify({
           longitude,
           latitude,
-          id: user.id
+          user_id: user.id
         }),
         headers: { 'content-type': 'application/json', 'Accept': 'application/json' }
       });
     }
+
+    //navigation google maps redirecting button handler 
+    function mapsSelector(lat, long) {
+      console.log("in map selector")
+      if /* if we're on iOS, open in Apple Maps */
+        ((navigator.platform.indexOf("iPhone") != -1) || 
+         (navigator.platform.indexOf("iPad") != -1) || 
+         (navigator.platform.indexOf("iPod") != -1))
+        window.open(`maps://maps.google.com/maps?daddr=${lat},${long}&amp;ll=`);
+    else /* else use Google */
+        window.open(`https://maps.google.com/maps?daddr=${lat},${long}&amp;ll=`);
+    } 
 
     // if the user clicks on the add pin button, toggle the state for shouldAddPin
     if (target.id === 'add_pin') {
       setShouldAddPin(shouldAddPin => !shouldAddPin);
     }
   };
+
+  //navigation google maps redirecting button handler 
+  function mapsSelector(lat, long) {
+    console.log("in map selector")
+    if /* if we're on iOS, open in Apple Maps */
+      ((navigator.platform.indexOf("iPhone") != -1) || 
+        (navigator.platform.indexOf("iPad") != -1) || 
+        (navigator.platform.indexOf("iPod") != -1))
+      window.open(`maps://maps.google.com/maps?daddr=${lat},${long}&amp;ll=`);
+  else /* else use Google */
+      window.open(`https://maps.google.com/maps?daddr=${lat},${long}&amp;ll=`);
+  } 
+
+  //reserve button functionality
+  const reserveClick = (lat, long) => {
+    fetch("/api/parking", {
+      method: "PATCH",
+      body: JSON.stringify({
+        id: user.id,
+        latitude: lat,
+        longitude: long,
+        available: false,
+        reserved: true,
+        taken: false,
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }).then(res => {
+      console.log('Patch completed', res)
+    })
+  }
+  
+  //taken button - conditionally render
+  const takenButton = (lat, long) => {
+    fetch("/api/parking", {
+      method: "PATCH",
+      body: JSON.stringify({
+        id: user.id,
+        latitudw: lat,
+        longitude: long,
+        available: false,
+        reserved: false,
+        taken: true
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }).then(res => {
+      console.log('parking spot is taken');
+    })
+  }
 
   const [events, setEvents] = React.useState({});
 
@@ -213,6 +276,7 @@ const MapComponent = () => {
               </button>
             </Marker>
           ))}
+          
           {mongoParkingSpots.map(park => ( //will need to update this when the pins table are complete
              // map the MongoDB array of parking spots
             <Marker // this JSX element is imported from MapBox that will mark different locations on the map
@@ -243,8 +307,11 @@ const MapComponent = () => {
                 Who parked here: {selectedPark.user_name || user.name}<br />
                 Available today at: {time}<br />
                 Parking coordinates: {selectedPark.latitude}, {selectedPark.longitude}
+                Reserved: 
               </div>
               <button onClick={() => mapsSelector(selectedPark.latitude, selectedPark.longitude)}>Go to Maps</button>
+              <button onClick={() => reserveClick(selectedPark.latitude, selectedPark.longitude)}>Reserve</button>
+              {taken}
             </Popup>
           ) : null}
           <button id="add_pin" style={{ position: 'absolute', bottom: '15vh', left: '4vw', height: '45px', width: '85px', borderRadius: '2vw', fontSize: '15px', background: '#2B7BF0', color: 'white' }}>
