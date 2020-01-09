@@ -67,9 +67,11 @@ export default function SignUpSecondary(props) {
       .then(res => {
         console.log("user response: ", res.successfulSignup);
         if (res.successfulSignup === true) {
+          console.log('going to main');
           history.push("/main");
         } // if user creation is successful, redirect signup2
         else {
+          console.log('going to signup')
           history.push("/signup"); // if user creation fails
         }
       })

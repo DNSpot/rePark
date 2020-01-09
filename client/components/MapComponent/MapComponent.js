@@ -9,6 +9,7 @@ import './map.css';
 const mongoParkingSpots = [{ latitude: 33.985673, longitude: -118.455888, user_ID: 10000, user_name: 'Catherine', wait_time: '10' },
 { latitude: 33.982185, longitude: -118.438087, user_ID: 10001, user_name: 'Amruth', wait_time: '15' }];
 
+
 function mapsSelector(lat, long) {
   console.log("in map selector")
   if /* if we're on iOS, open in Apple Maps */
@@ -30,7 +31,7 @@ const MapComponent = () => {
       savedCallback.current = callback;
     }, [callback]);
 
-    // Set up the interval.
+    // Set up the interval. 
     useEffect(() => {
       function tick() {
         savedCallback.current();
@@ -74,13 +75,15 @@ const MapComponent = () => {
     })
       .then((res) => res.json())
       .then((pinLocations) => {
+        console.log(pinLocations);
         pinLocations.forEach((location) => {
+          console.log(location);
           const latitude = location.spot.coordinate[1];
           const longitude = location.spot.coordinate[0];
           setMarkers(markers => [...markers, { latitude, longitude }]);
         })
       })
-  }, 1000)
+  }, 10000)
 
   // setInterval(() => {
 
@@ -109,12 +112,13 @@ const MapComponent = () => {
   // when the user clicks on the map, add the coordinates into the markers array
   const handleClick = ({ lngLat: [longitude, latitude], target }) => { // the parameter is the PointerEvent in react-map-gl
     console.log('target.className', target.className);
+    console.log(user);  
     if (target.className !== 'mapboxgl-ctrl-geocoder--input' && shouldAddPin) { // as long as the user is not clicking in the search box
       // console.log(`clicked, longitude: ${longitude}, latitude: ${latitude}`);
-      setMarkers(markers => [...markers, { latitude, longitude }]); // add a marker at the location
+      setMarkers(markers => [...markers, { latitude, longitude, user_ID: user.id, user_name: user.name  }]); // add a marker at the location
       // console.log('markers: ', markers);
       setShouldAddPin(shouldAddPin => !shouldAddPin);
-
+      //user_ID: 10000, user_name: 'Catherine', wait_time: '10'
       let utcDate = new Date(new Date().toUTCString());
       let utcDateAdd10Min = new Date(utcDate.getTime() + 10 * 60000);
       setTime(time => {
@@ -146,16 +150,18 @@ const MapComponent = () => {
   };
 
   const onMarkerDragStart = ({ lngLat: [lng, lat] }) => {
-    logDragEvent('onDragStart', event);
-  };
+    // logDragEvent('onDragStart', event);
+    console.log('draging started')
+  };  
 
   const onMarkerDrag = ({ lngLat: [lng, lat] }) => {
-    logDragEvent('onDrag', event);
+    console.log('draging continued')
   };
+  const onMarkerDragEnd = ({ lngLat: [longitude, latitude] }) => {
+    console.log('draging stopped, updating coordinates')
+    setMarkers(markers.filter(item => item.user_name  !== user.name))
+    setMarkers(markers => [...markers, { latitude, longitude, user_name: user.name}]);
 
-  const onMarkerDragEnd = ({ lngLat: [lng, lat] }) => {
-    logDragEvent('onDragEnd', event);
-    setMarkers(markers => [...markers, { latitude, longitude }]);
   };
 
   return (
@@ -192,10 +198,11 @@ const MapComponent = () => {
               key={i}
               latitude={park.latitude}
               longitude={park.longitude}
-            // draggable={true}
-            // onDragStart={onMarkerDragStart}
-            // onDrag={onMarkerDrag}
-            // onDragEnd={onMarkerDragEnd}
+              user_name = {park.user_name}
+              draggable={true}
+              onDragStart={onMarkerDragStart}
+              onDrag={onMarkerDrag}
+              onDragEnd={onMarkerDragEnd}
             >
               <button className="marker-btn" onClick={(e) => {
                 e.preventDefault();
@@ -206,8 +213,8 @@ const MapComponent = () => {
               </button>
             </Marker>
           ))}
-
-          {mongoParkingSpots.map(park => ( // map the MongoDB array of parking spots
+          {mongoParkingSpots.map(park => ( //will need to update this when the pins table are complete
+             // map the MongoDB array of parking spots
             <Marker // this JSX element is imported from MapBox that will mark different locations on the map
               key={park.user_ID} // each parking spot should have a unique key of who were in the spot
               latitude={park.latitude}
@@ -216,6 +223,7 @@ const MapComponent = () => {
               <button className="marker-btn" onClick={(e) => {
                 e.preventDefault();
                 console.log('clicked: ', park);
+                console.log('state', markers)
                 setSelectedPark(park); // when the map pin button is clicked, we will set the state of selectedPark to be the current park the user clicked
               }}>
                 <img src={marker} style={{ backgroundColor: 'transparent' }} width="15" height="20" />

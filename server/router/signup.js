@@ -14,7 +14,7 @@ signup.post('/', userController.createUser, (req, res) => {
 
 signup.put('/', userController.updateUserCar,
 		  (req, res) => {
-			res.status(200).json({ successfulSignup: res.locals.successfulSignup })
+			res.status(200).json({ successfulSignup: true })
 		  })
 						
 
