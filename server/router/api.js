@@ -4,13 +4,17 @@ const api = express.Router();
 const apiController = require('../controllers/apiController');
   
 //jk
-api.post('/parking', apiController.create, (req, res) => {
-    res.setStatus(200);
+api.post('/parking', apiController.create, apiController.findOne, (req, res) => {
+    res.status(200).json(res.locals.id);
 })
 
 api.get('/parking', apiController.findAll, (req, res)=>{
     //CHECK WITH FRONT END WHAT IS SENT OVER THROUGH JSON, CHECK WHAT NEEDS TO BE CHANGED TO CORRECTLY IDENTIFY LONG/LAT 
     res.status(200).json(res.locals.pins);
+})
+
+api.patch('/parking', apiController.updateMarker, (req, res) => {
+    res.status(200).json(res.locals.updated);
 })
 
 module.exports = api;

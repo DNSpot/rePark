@@ -26,7 +26,10 @@ const cookieController = {};
 cookieController.setCookie = (req, res, next) =>{
     const { phone } = req.body;
     const phoneNum = Number(phone);
-    res.cookie('username', phoneNum, {httpOnly: false});
+    res.cookie('id', phoneNum, {httpOnly: false});
+    //creating a column in the users table 
+    //const text = `ALTER TABLE users ADD cookie `
+    //console.log(req.)
     next();
 }
 module.exports = cookieController;
